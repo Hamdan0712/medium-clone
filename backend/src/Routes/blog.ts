@@ -42,7 +42,18 @@ blogRouter.use('/*',async(c,next)=>{
   
 blogRouter.get('/getallblogs', async (c) => {
     const prisma=new PrismaClient({datasourceUrl:c.env.DATABASE_URL}).$extends(withAccelerate());
-    const posts=await prisma.post.findMany();
+    const posts=await prisma.post.findMany({
+      select:{
+        title:true,
+        content:true,
+        id:true,
+        author:{
+          select:{
+            username:true
+          }
+        }
+      }
+    });
     return c.json(posts);
   })
   
@@ -64,7 +75,7 @@ const created= await prisma.post.create({
     }
 })
 
-
+ 
 return c.json({msg:created.id});
   })
   
@@ -85,26 +96,26 @@ blogRouter.put('/updateblog',async (c)=>{
    })
     return c.text("Updated the content and title");
   })
-  blogRouter.get('/getblog/',async(c)=>{
-     const prisma=new PrismaClient({datasourceUrl:c.env.DATABASE_URL}).$extends(withAccelerate());
-     const body=await c.req.json();
+  // blogRouter.get('/getblog/',async(c)=>{
+  //    const prisma=new PrismaClient({datasourceUrl:c.env.DATABASE_URL}).$extends(withAccelerate());
+  //    const body=await c.req.json();
 
-     try{
-      const post=await prisma.post.findFirst({
-        where:{
-          id:body.id
-        }
-      })
+  //    try{
+  //     const post=await prisma.post.findFirst({
+  //       where:{
+  //         id:body.id
+  //       }
+  //     })
 
-      return c.json(post);
-     }catch(e){
-      c.status(404);
-       return c.json({msg:"Not found"});
+  //     return c.json(post);
+  //    }catch(e){
+  //     c.status(404);
+  //      return c.json({msg:"Not found"});
 
-     }
+  //    }
 
 
-  })
+  // })
 
   blogRouter.get("/getblog/:id",async(c)=>{
     const prisma=new PrismaClient({datasourceUrl:c.env.DATABASE_URL}).$extends(withAccelerate());;
@@ -113,6 +124,16 @@ blogRouter.put('/updateblog',async (c)=>{
     const post=await prisma.post.findFirst({
       where:{
         id:id
+      },
+      select:{
+        id:true,
+        content:true,
+        title:true,
+        author:{
+          select:{
+            username:true
+          }
+        }
       }
     })
 
